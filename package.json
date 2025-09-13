@@ -1,0 +1,37 @@
+{
+  "name": "quantum-pmc-back",
+  "version": "1.0.0",
+  "description": "Lightweight Node.js backend for contact form submissions",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "prod": "pm2 start ecosystem.config.js --env production",
+    "stop": "pm2 stop quantum-pmc-back",
+    "restart": "pm2 restart quantum-pmc-back",
+    "logs": "pm2 logs quantum-pmc-back",
+    "monit": "pm2 monit",
+    "build": "echo 'No build step required for this project'",
+    "deploy": "npm run prod"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "nodemailer": "^6.9.7",
+    "dotenv": "^16.3.1",
+    "pm2": "^5.3.0"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "contact-form",
+    "nodemailer"
+  ],
+  "author": "Quantum PMC",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
