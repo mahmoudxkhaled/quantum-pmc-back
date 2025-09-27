@@ -3,6 +3,7 @@ module.exports = {
     name: 'quantum-pmc-back',
     script: 'server.js',
     instances: 1,
+    exec_mode: 'fork',
     autorestart: true,
     watch: false,
     max_memory_restart: '1G',
@@ -12,7 +13,7 @@ module.exports = {
     },
     env_production: {
       NODE_ENV: 'production',
-      PORT: 4000
+      PORT: 8080
     },
     error_file: './logs/err.log',
     out_file: './logs/out.log',
