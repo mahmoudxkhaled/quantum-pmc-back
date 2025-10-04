@@ -64,7 +64,7 @@ function validateContactData(data) {
 }
 
 // Create Nodemailer transporter
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT),
   secure: process.env.SMTP_SECURE === 'true',
@@ -208,17 +208,17 @@ Submitted on: ${new Date().toLocaleString()}
       </div>
     `;
     
-    // Send email to info@quantum-pmc.com
+    // Send email
     const info = await transporter.sendMail({
       from: process.env.MAIL_FROM,
-      to: 'info@quantum-pmc.com', // Contact form emails go to info@quantum-pmc.com
+      to: process.env.MAIL_TO,
       replyTo: email,
       subject: emailSubject,
       text: emailText,
       html: emailHtml,
       envelope: {
         from: process.env.SMTP_USER,
-        to: 'info@quantum-pmc.com'
+        to: process.env.MAIL_TO
       }
     });
     
@@ -320,17 +320,17 @@ Submitted on: ${new Date().toLocaleString()}
       </div>
     `;
     
-    // Send email to hr@quantum-pmc.com
+    // Send email
     const info = await transporter.sendMail({
       from: process.env.MAIL_FROM,
-      to: 'hr@quantum-pmc.com', // Career applications go to hr@quantum-pmc.com
+      to: process.env.MAIL_TO,
       replyTo: email,
       subject: emailSubject,
       text: emailText,
       html: emailHtml,
       envelope: {
         from: process.env.SMTP_USER,
-        to: 'hr@quantum-pmc.com'
+        to: process.env.MAIL_TO
       }
     });
     
