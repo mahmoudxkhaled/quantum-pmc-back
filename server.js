@@ -13,7 +13,10 @@ const PORT = process.env.PORT || 4000;
 app.use(cors({
   origin: [
       'https://test.quantum-pmc.com',
+      'http://www.motahida-group.com',
+      'https://www.motahida-group.com',
       'https://quantum-pmc.com',
+      'https://api.quantum-pmc.com',
       'http://localhost:4200'
     ],
   credentials: true,
@@ -64,7 +67,7 @@ function validateContactData(data) {
 }
 
 // Create Nodemailer transporter
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT),
   secure: process.env.SMTP_SECURE === 'true',
@@ -219,6 +222,99 @@ Submitted on: ${new Date().toLocaleString()}
       envelope: {
         from: process.env.SMTP_USER,
         to: 'info@quantum-pmc.com'
+      }
+    });
+    
+    res.json({
+      ok: true,
+      messageId: info.messageId
+    });
+    
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(502).json({
+      ok: false,
+      error: 'send_error'
+    });
+  }
+});
+
+// Motahida Group contact form endpoint
+app.post('/api/motahida-contact', async (req, res) => {
+  try {
+    // Validate input data
+    const validationErrors = validateContactData(req.body);
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        ok: false,
+        error: 'validation_error',
+        details: validationErrors
+      });
+    }
+    
+    const { name, email, message, subject, phone } = req.body;
+    
+    // Prepare email content
+    const emailSubject = subject || `Motahida Group Contact Form Submission from ${name}`;
+    const emailText = `
+========================================
+        MOTAHIDA GROUP CONTACT FORM
+========================================
+
+Name: ${name}
+Email: ${email}
+${phone ? `Phone: ${phone}` : ''}
+${subject ? `Subject: ${subject}` : ''}
+
+Message:
+----------------------------------------
+${message}
+----------------------------------------
+
+Submitted on: ${new Date().toLocaleString()}
+    `.trim();
+    
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+        <div style="background-color: #2c3e50; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">Motahida Group Contact Form</h1>
+        </div>
+        
+        <div style="background-color: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <div style="margin-bottom: 20px;">
+            <h3 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">Contact Information</h3>
+            <p style="margin: 8px 0;"><strong style="color: #34495e;">Name:</strong> ${name}</p>
+            <p style="margin: 8px 0;"><strong style="color: #34495e;">Email:</strong> <a href="mailto:${email}" style="color: #3498db;">${email}</a></p>
+            ${phone ? `<p style="margin: 8px 0;"><strong style="color: #34495e;">Phone:</strong> <a href="tel:${phone}" style="color: #3498db;">${phone}</a></p>` : ''}
+            ${subject ? `<p style="margin: 8px 0;"><strong style="color: #34495e;">Subject:</strong> ${subject}</p>` : ''}
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <h3 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">Message</h3>
+            <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; border-radius: 4px;">
+              <p style="margin: 0; line-height: 1.6; color: #2c3e50;">${message.replace(/\n/g, '<br>')}</p>
+            </div>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ecf0f1; color: #7f8c8d; font-size: 12px;">
+            <p>Submitted on: ${new Date().toLocaleString()}</p>
+            <p>Motahida Group - Contact Form</p>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Send email to Motahida Group
+    const info = await transporter.sendMail({
+      from: process.env.MOTAHIDA_MAIL_FROM,
+      to: process.env.MOTAHIDA_MAIL_TO, // Motahida Group contact emails
+      replyTo: email,
+      subject: emailSubject,
+      text: emailText,
+      html: emailHtml,
+      envelope: {
+        from: process.env.SMTP_USER,
+        to: process.env.MOTAHIDA_MAIL_TO
       }
     });
     
