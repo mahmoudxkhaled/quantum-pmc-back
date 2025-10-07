@@ -242,18 +242,22 @@ Submitted on: ${new Date().toLocaleString()}
 // Motahida Group contact form endpoint
 app.post('/api/motahida-contact', async (req, res) => {
   try {
-    // Validate input data
     const validationErrors = validateContactData(req.body);
     if (validationErrors.length > 0) {
-      return res.status(400).json({
-        ok: false,
-        error: 'validation_error',
-        details: validationErrors
-      });
+      return res.status(400).json({ ok: false, error: 'validation_error', details: validationErrors });
     }
-    
+
     const { name, email, message, subject, phone } = req.body;
-    
+
+    // Normalize recipients from env -> array (handles spaces)
+    const motahidaRecipients = (process.env.MOTAHIDA_MAIL_TO || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (motahidaRecipients.length === 0) {
+      return res.status(500).json({ ok: false, error: 'config_error', details: ['MOTAHIDA_MAIL_TO is not set'] });
+    }
     // Prepare email content
     const emailSubject = subject || `Motahida Group Contact Form Submission from ${name}`;
     const emailText = `
@@ -307,7 +311,7 @@ Submitted on: ${new Date().toLocaleString()}
     // Send email to Motahida Group
     const info = await transporter.sendMail({
       from: process.env.MOTAHIDA_MAIL_FROM,
-      to: process.env.MOTAHIDA_MAIL_TO, // Motahida Group contact emails
+      to: motahidaRecipients, // Motahida Group contact emails
       replyTo: email,
       subject: emailSubject,
       text: emailText,
