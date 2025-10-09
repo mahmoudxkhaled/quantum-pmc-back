@@ -9,6 +9,17 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Debug: show selected env values (no secrets)
+console.log('[ENV CHECK]', {
+  MAIL_FROM: process.env.MAIL_FROM,
+  MAIL_TO_CONTACT: process.env.MAIL_TO_CONTACT,
+  MAIL_TO_CAREERS: process.env.MAIL_TO_CAREERS,
+
+  MOTAHIDA_MAIL_FROM: process.env.MOTAHIDA_MAIL_FROM,
+  MOTAHIDA_MAIL_TO: process.env.MOTAHIDA_MAIL_TO,
+  SMTP_USER: process.env.SMTP_USER
+});
+
 // Middleware
 app.use(cors({
   origin: [
@@ -74,6 +85,19 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
+
+const motahida_transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT),
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.MOTAHIDA_SMTP_USER,
+    pass: process.env.MOTAHIDA_SMTP_PASS
   },
   tls: {
     rejectUnauthorized: false
@@ -214,14 +238,14 @@ Submitted on: ${new Date().toLocaleString()}
     // Send email to info@quantum-pmc.com
     const info = await transporter.sendMail({
       from: process.env.MAIL_FROM,
-      to: 'info@quantum-pmc.com', // Contact form emails go to info@quantum-pmc.com
+      to: process.env.MAIL_TO_CONTACT, // Contact form emails go to info@quantum-pmc.com
       replyTo: email,
       subject: emailSubject,
       text: emailText,
       html: emailHtml,
       envelope: {
-        from: process.env.SMTP_USER,
-        to: 'info@quantum-pmc.com'
+        from: process.env.MAIL_FROM,
+        to: process.env.MAIL_TO_CONTACT
       }
     });
     
@@ -309,7 +333,7 @@ Submitted on: ${new Date().toLocaleString()}
     `;
     
     // Send email to Motahida Group
-    const info = await transporter.sendMail({
+    const info = await motahida_transporter.sendMail({
       from: process.env.MOTAHIDA_MAIL_FROM,
       to: motahidaRecipients, // Motahida Group contact emails
       replyTo: email,
@@ -317,7 +341,7 @@ Submitted on: ${new Date().toLocaleString()}
       text: emailText,
       html: emailHtml,
       envelope: {
-        from: process.env.SMTP_USER,
+        from: process.env.MOTAHIDA_MAIL_FROM,
         to: process.env.MOTAHIDA_MAIL_TO
       }
     });
@@ -423,14 +447,14 @@ Submitted on: ${new Date().toLocaleString()}
     // Send email to hr@quantum-pmc.com
     const info = await transporter.sendMail({
       from: process.env.MAIL_FROM,
-      to: 'hr@quantum-pmc.com', // Career applications go to hr@quantum-pmc.com
+      to: process.env.MAIL_TO_CAREERS, // Career applications go to hr@quantum-pmc.com
       replyTo: email,
       subject: emailSubject,
       text: emailText,
       html: emailHtml,
       envelope: {
-        from: process.env.SMTP_USER,
-        to: 'hr@quantum-pmc.com'
+        from: process.env.MAIL_FROM,
+        to: process.env.MAIL_TO_CAREERS
       }
     });
     
@@ -449,14 +473,20 @@ Submitted on: ${new Date().toLocaleString()}
 });
 
 // Verify SMTP connection on startup
-transporter.verify((error, success) => {
-  if (error) {
-    console.log('SMTP connection error:', error);
-  } else {
-    console.log('SMTP server is ready to take our messages');
-  }
-});
-
+  transporter.verify((error, success) => {
+    if (error) {
+      console.log('SMTP connection error:', error);
+    } else {
+      console.log('SMTP server is ready to take our messages');
+    }
+  });
+  motahida_transporter.verify((error, success) => {
+    if (error) {
+      console.log('MOTAHIDA SMTP connection error:', error);
+    } else {
+      console.log('MOTAHIDA SMTP server is ready to take our messages');
+    }
+  });
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
